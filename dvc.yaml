@@ -1,0 +1,40 @@
+stages:
+  split:
+    cmd: python src/split_dataset.py data/raw/dataset.csv 0.3 1234 data/interim
+    deps:
+      - src/split_dataset.py
+      - data/raw/dataset.csv
+    outs:
+      - data/interim/train.csv
+      - data/interim/test.csv
+
+  featurize:
+    cmd: python src/featurization.py data/interim/train.csv data/interim/test.csv data/processed models/vectorizer.pkl
+
+    deps:
+      - src/featurization.py
+      - data/interim/train.csv
+      - data/interim/test.csv
+
+    outs:
+      - data/processed/train.pkl
+      - data/processed/test.pkl
+      - models/vectorizer.pkl
+
+  train:
+      cmd: python src/train.py data/processed/train.pkl models/baseline.pkl 1234
+      deps:
+        - src/train.py
+        - data/processed/train.pkl
+      outs:
+        - models/baseline.pkl
+
+  evaluate:
+      cmd: python src/evaluation.py models/baseline.pkl data/processed/test.pkl metrics/accuracy.json
+      deps:
+        - src/evaluation.py
+        - models/baseline.pkl
+        - data/processed/test.pkl
+      metrics:
+        - metrics/accuracy.json:
+            cache: false

@@ -1,2 +1,4 @@
+[core]
+    remote = origin
 ['remote "origin"']
     url = https://dagshub.com/NapoliFabian/se4ai_mlops_project.dvc
