@@ -1,6 +1,7 @@
 import argparse
 import mlflow
 import mlflow.sklearn
+import mlflow.pytorch
 import json
 
 import split_dataset
@@ -10,14 +11,12 @@ import evaluation
 import dagshub
 
 
-# =========================
 # PIPELINE STEPS
-# =========================
 
 def split(input_path, output_train, output_test, test_size: float, seed: int):
-    print(f"\n>>> Running split_data(test_size={test_size}, seed={seed})")
+    print("\n>>> Running split_data")
 
-    train_df, test_df = split_dataset.split_data(
+    return split_dataset.split_data(
         input_path,
         output_train,
         output_test,
@@ -25,26 +24,27 @@ def split(input_path, output_train, output_test, test_size: float, seed: int):
         seed
     )
 
-    return train_df, test_df
 
-
-def run_featurize(train_path, test_path, output_dir):
+def run_featurize(train_path, test_path, output_dir, method):
     print("\n>>> Running featurize()")
+
     return featurization.featurize(
         train_path,
         test_path,
         output_dir,
-        "models/vectorizer.pkl"
+        vectorizer_path="models/vectorizer.pkl",
+        method=method
     )
 
 
-def run_train(train_data, model_out, seed: int):
-    print(f"\n>>> Running train (LogReg only, seed={seed})")
+def run_train(train_data, model_out, seed: int, model_type):
+    print("\n>>> Running train")
 
     return train.train_model(
         train_data,
         model_out,
-        seed
+        seed,
+        model_type=model_type
     )
 
 
@@ -58,19 +58,19 @@ def run_evaluate(model_path, eval_data, metrics_out):
     )
 
 
-# =========================
-# PIPELINE ORCHESTRATION
-# =========================
+# ORCHESTRATION
 
 def run_all(args):
 
-    # =========================================================
-    # MLflow + DAGSHUB TRACKING
-    # =========================================================
-    dagshub.init(repo_owner='NapoliFabian', repo_name='se4ai_mlops_project', mlflow=True)
-    mlflow.set_experiment("BASELINE")
+    dagshub.init(
+        repo_owner="NapoliFabian",
+        repo_name="se4ai_mlops_project",
+        mlflow=True
+    )
 
-    with mlflow.start_run(run_name="logreg_pipeline"):
+    mlflow.set_experiment("FakeNews_Classification")
+
+    with mlflow.start_run(run_name=f"{args.model_type}_pipeline"):
 
         # =========================
         # PATHS
@@ -87,16 +87,16 @@ def run_all(args):
         metrics_out = "reports/metrics.json"
 
         # =========================
-        # LOG PARAMS
+        # PARAMS
         # =========================
         mlflow.log_params({
             "test_size": args.test_size,
             "seed": args.seed,
-            "model_type": "logistic_regression"
+            "model_type": args.model_type
         })
 
         # =========================
-        # 1. SPLIT
+        # SPLIT
         # =========================
         train_df, test_df = split(
             input_path,
@@ -111,38 +111,37 @@ def run_all(args):
             "n_test": len(test_df)
         })
 
-        # =========================
-        # SAVE CLASS DISTRIBUTION
-        # =========================
-        class_dist = train_df["label"].value_counts(normalize=True).to_dict()
-
-        with open("class_distribution.json", "w") as f:
-            json.dump(class_dist, f, indent=2)
-
         mlflow.log_artifact("class_distribution.json")
 
         # =========================
-        # 2. FEATURIZATION
+        # FEATURIZATION (DEPEND ON MODEL)
         # =========================
+        if args.model_type == "logreg":
+            method = "tfidf"
+        else:
+            method = "sbert"
+
         X_train, X_test, y_train, y_test = run_featurize(
             train_csv,
             test_csv,
             features_dir,
+            method=method
         )
 
-        mlflow.log_param("n_features", X_train.shape[1])
+        mlflow.log_param("embedding", method)
 
         # =========================
-        # 3. TRAIN (ONLY LOGISTIC REGRESSION)
+        # TRAIN
         # =========================
-        model = run_train(
+        model, loss_history = run_train(
             train_data=train_pkl,
             model_out=model_out,
-            seed=args.seed
+            seed=args.seed,
+            model_type=args.model_type
         )
 
         # =========================
-        # 4. EVALUATE
+        # EVALUATION
         # =========================
         metrics = run_evaluate(
             model_path=model_out,
@@ -151,9 +150,13 @@ def run_all(args):
         )
 
         # =========================
-        # MLflow logging
+        # LOG MODEL
         # =========================
-        mlflow.sklearn.log_model(model, "model")
+        if args.model_type == "logreg":
+            mlflow.sklearn.log_model(model, "model")
+        else:
+            mlflow.pytorch.log_model(model, "model")
+
         mlflow.log_metrics(metrics)
         mlflow.log_artifact(metrics_out)
 
@@ -164,18 +167,12 @@ def run_all(args):
         print("PIPELINE SUMMARY")
         print("=" * 50)
 
-        print(f"Train size: {len(train_df)}")
-        print(f"Test size : {len(test_df)}")
-
-        print("\nMETRICS:")
         for k, v in metrics.items():
             print(f"{k}: {v:.4f}")
 
         print("=" * 50)
 
-        return {
-            "metrics": metrics
-        }
+        return {"metrics": metrics}
 
 
 # =========================
@@ -187,6 +184,16 @@ def main():
 
     parser.add_argument("--test_size", type=float, default=0.3)
     parser.add_argument("--seed", type=int, default=1234)
+
+    # 🔥 NEW PARAM
+    parser.add_argument(
+        "--model_type",
+        type=str,
+        choices=["logreg", "nn"],
+        default="nn",
+        required=False
+        
+    )
 
     args = parser.parse_args()
 

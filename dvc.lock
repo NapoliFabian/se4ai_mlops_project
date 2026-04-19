@@ -22,7 +22,7 @@ stages:
       size: 171556654
   featurize:
     cmd: python src/featurization.py data/interim/train.csv 
-      data/interim/test.csv data/processed models/vectorizer.pkl
+      data/interim/test.csv data/processed models/vectorizer.pkl sbert
     deps:
     - path: data/interim/test.csv
       hash: md5
@@ -34,55 +34,56 @@ stages:
       size: 171556654
     - path: src/featurization.py
       hash: md5
-      md5: 3b80d63e166ff90972942cf07ae97368
-      size: 1893
+      md5: 9dae92f14f57ee6c4702d3c95848a06a
+      size: 3350
     outs:
     - path: data/processed/test.pkl
       hash: md5
-      md5: 926200e57add2451c2e29bba70f49924
-      size: 2150206
+      md5: 82f5bfe0757805786564623d836f6ee5
+      size: 33413946
     - path: data/processed/train.pkl
       hash: md5
-      md5: 66c28e09040465124cec8fdc3178d5a4
-      size: 5045710
+      md5: 9a110376bcf31fe12d0aeda4d1142e4c
+      size: 77961434
     - path: models/vectorizer.pkl
       hash: md5
-      md5: dc773e933680e3518177d05de2759d46
-      size: 486632
+      md5: ab1589eddbbb56dddfa579bdb6587444
+      size: 91780872
   train:
-    cmd: python src/train.py data/processed/train.pkl models/baseline.pkl 1234
+    cmd: python src/train.py data/processed/train.pkl models/baseline.pkl 1234 
+      nn
     deps:
     - path: data/processed/train.pkl
       hash: md5
-      md5: 66c28e09040465124cec8fdc3178d5a4
-      size: 5045710
+      md5: 9a110376bcf31fe12d0aeda4d1142e4c
+      size: 77961434
     - path: src/train.py
       hash: md5
-      md5: 27c99192d2dac9344387125fb85d51e1
-      size: 1302
+      md5: 80d048a41a2a61ac3fb84079f4e79603
+      size: 4045
     outs:
     - path: models/baseline.pkl
       hash: md5
-      md5: 319195f7d7cc2d776dadea078cd83fe9
-      size: 40720
+      md5: 25f2578f2554f777a4b605ed3bd1d4af
+      size: 1054738
   evaluate:
     cmd: python src/evaluation.py models/baseline.pkl data/processed/test.pkl 
       metrics/accuracy.json
     deps:
     - path: data/processed/test.pkl
       hash: md5
-      md5: 926200e57add2451c2e29bba70f49924
-      size: 2150206
+      md5: 82f5bfe0757805786564623d836f6ee5
+      size: 33413946
     - path: models/baseline.pkl
       hash: md5
-      md5: 319195f7d7cc2d776dadea078cd83fe9
-      size: 40720
+      md5: 25f2578f2554f777a4b605ed3bd1d4af
+      size: 1054738
     - path: src/evaluation.py
       hash: md5
-      md5: 9830865761417e29fd6e741db2d2935d
-      size: 1832
+      md5: e35aec0e59804fd56f1621fad713052a
+      size: 1881
     outs:
     - path: metrics/accuracy.json
       hash: md5
-      md5: 45d277b8d893b9dcaa7359c734a9b457
-      size: 135
+      md5: 2a5207f6f548bcb278c94969a71b38f6
+      size: 137

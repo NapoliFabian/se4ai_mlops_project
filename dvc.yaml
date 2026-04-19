@@ -9,7 +9,7 @@ stages:
       - data/interim/test.csv
 
   featurize:
-    cmd: python src/featurization.py data/interim/train.csv data/interim/test.csv data/processed models/vectorizer.pkl
+    cmd: python src/featurization.py data/interim/train.csv data/interim/test.csv data/processed models/vectorizer.pkl sbert
 
     deps:
       - src/featurization.py
@@ -22,7 +22,7 @@ stages:
       - models/vectorizer.pkl
 
   train:
-      cmd: python src/train.py data/processed/train.pkl models/baseline.pkl 1234
+      cmd: python src/train.py data/processed/train.pkl models/baseline.pkl 1234 nn
       deps:
         - src/train.py
         - data/processed/train.pkl
