@@ -1,6 +1,15 @@
 # Data
-/data/
+# ignora tutto
+/data/**
 
+# riabilita cartelle
+!/data/**/
+
+# consenti SOLO metadata DVC
+!/data/**/*.dvc
+
+# (opzionale) tieni .gitkeep
+!/data/**/.gitkeep
 # Mac OS-specific storage files
 .DS_Store
 
