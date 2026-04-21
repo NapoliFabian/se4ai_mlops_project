@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from pathlib import Path
+import sys
 
 
 # split function
@@ -52,7 +53,6 @@ def split_data(input_path, output_train, output_test, test_size, seed):
 
 
 if __name__ == "__main__":
-    import sys
 
     if len(sys.argv) != 5:
         print("Usage: python split_dataset.py <input_path> <test_size> <seed> <output_dir>")

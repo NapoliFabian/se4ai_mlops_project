@@ -4,10 +4,12 @@
 !/data/**/
 !/data/**/*.dvc
 !/data/**/.gitkeep
-
-
+metrics/
 
 /models/*.pkl
+/models/*.json
+/models/*.safetensors
+
 # Mac OS-specific storage files
 .DS_Store
 

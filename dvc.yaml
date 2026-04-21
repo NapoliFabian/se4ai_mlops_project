@@ -27,14 +27,14 @@ stages:
         - src/train.py
         - data/processed/train.pkl
       outs:
-        - models/baseline.pkl
+        - models/model.pkl
 
   evaluate:
-      cmd: python src/evaluation.py models/baseline.pkl data/processed/test.pkl metrics/accuracy.json
+      cmd: python src/evaluation.py models/model.pkl data/processed/test.pkl metrics/metrics.json
       deps:
         - src/evaluation.py
-        - models/baseline.pkl
+        - models/model.pkl
         - data/processed/test.pkl
       metrics:
-        - metrics/accuracy.json:
+        - metrics/metrics.json:
             cache: false

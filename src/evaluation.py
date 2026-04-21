@@ -3,6 +3,10 @@ import json
 import pickle
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from models.neural_network import DenseClassifier
+from models.bert_classifier import predict_bert
+from transformers import BertTokenizer, BertForSequenceClassification
+import pandas as pd
+import sys
 
 # LOAD
 
@@ -43,16 +47,32 @@ def save_metrics(metrics, path):
 # PIPELINE
 #
 
-def evaluate(model_path, test_pkl, metrics_out):
-    # load
-    model = load_model(model_path)
-    X_test, y_test = load_test_data(test_pkl)
+def evaluate(model_type, model_path, test_data, metrics_out):
 
-    # predict
-    y_pred = model.predict(X_test)
+    if model_type == "bert":
 
+        # load model
+        model = BertForSequenceClassification.from_pretrained(model_path)
+        tokenizer = BertTokenizer.from_pretrained(model_path)
+
+        # load CSV (NON pickle)
+        df = pd.read_csv(test_data)
+        texts = df["title"].fillna("").tolist()
+        y_test = df["label"].values
+
+        preds = predict_bert(model, tokenizer, texts)
+
+    else:
+
+        with open(model_path, "rb") as f:
+            model = pickle.load(f)
+
+        with open(test_data, "rb") as f:
+            X_test, y_test = pickle.load(f)
+
+        preds = model.predict(X_test)
     # metrics
-    metrics = compute_metrics(y_test, y_pred)
+    metrics = compute_metrics(y_test, preds)
 
     # save
     save_metrics(metrics, metrics_out)
@@ -70,10 +90,14 @@ def evaluate(model_path, test_pkl, metrics_out):
 
 
 if __name__ == "__main__":
-    import sys
 
-    if len(sys.argv) != 4:
-        print("Usage: python evaluate.py <model_path> <test_pkl> <metrics_out>")
+    if len(sys.argv) != 5:
+        print("Usage: python evaluate.py <model_type> <model_path> <test_data> <metrics_out>")
         sys.exit(1)
 
-    evaluate(sys.argv[1], sys.argv[2], sys.argv[3])
+    model_type = sys.argv[1]
+    model_path = sys.argv[2]
+    test_data = sys.argv[3]
+    metrics_out = sys.argv[4]
+
+    evaluate(model_type, model_path, test_data, metrics_out)

@@ -72,9 +72,7 @@ def run_all(args):
 
     with mlflow.start_run(run_name=f"{args.model_type}_pipeline"):
 
-        # =========================
         # PATHS
-        # =========================
         input_path = "data/raw/dataset.csv"
         train_csv = "data/interim/train.csv"
         test_csv = "data/interim/test.csv"
@@ -86,18 +84,14 @@ def run_all(args):
         model_out = "models/model.pkl"
         metrics_out = "reports/metrics.json"
 
-        # =========================
         # PARAMS
-        # =========================
         mlflow.log_params({
             "test_size": args.test_size,
             "seed": args.seed,
             "model_type": args.model_type
         })
 
-        # =========================
         # SPLIT
-        # =========================
         train_df, test_df = split(
             input_path,
             train_csv,
@@ -113,26 +107,33 @@ def run_all(args):
 
         mlflow.log_artifact("class_distribution.json")
 
-        # =========================
-        # FEATURIZATION (DEPEND ON MODEL)
-        # =========================
-        if args.model_type == "logreg":
-            method = "tfidf"
-        else:
-            method = "sbert"
-
-        X_train, X_test, y_train, y_test = run_featurize(
+    # FEATURIZATION
+    if args.model_type == "logreg":
+        run_featurize(
             train_csv,
             test_csv,
-            features_dir,
-            method=method
+            method="tfidf"
         )
+        mlflow.log_param("embedding", "tfidf")
 
-        mlflow.log_param("embedding", method)
+    elif args.model_type == "nn":
+        run_featurize(
+            train_csv,
+            test_csv,
+            method="sbert"
+        )
+        mlflow.log_param("embedding", "sbert")
 
-        # =========================
+    elif args.model_type == "bert":
+        X_train = train_df["text"].tolist()
+        y_train = train_df["label"].tolist()
+        X_test = test_df["text"].tolist()
+        y_test = test_df["label"].tolist()
+        mlflow.log_param("embedding", "raw")
+        
+
         # TRAIN
-        # =========================
+        
         model, loss_history = run_train(
             train_data=train_pkl,
             model_out=model_out,
@@ -140,18 +141,14 @@ def run_all(args):
             model_type=args.model_type
         )
 
-        # =========================
         # EVALUATION
-        # =========================
         metrics = run_evaluate(
             model_path=model_out,
             eval_data=test_pkl,
             metrics_out=metrics_out
         )
 
-        # =========================
         # LOG MODEL
-        # =========================
         if args.model_type == "logreg":
             mlflow.sklearn.log_model(model, "model")
         else:
@@ -189,8 +186,8 @@ def main():
     parser.add_argument(
         "--model_type",
         type=str,
-        choices=["logreg", "nn"],
-        default="nn",
+        choices=["logreg", "nn", "bert"],
+        default="bert",
         required=False
         
     )
