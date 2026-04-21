@@ -22,7 +22,7 @@ stages:
       - models/vectorizer.pkl
 
   train:
-      cmd: python src/train.py data/processed/train.pkl models/baseline.pkl 1234 nn
+      cmd: python src/train.py data/processed/train.pkl models/model.pkl 1234 nn
       deps:
         - src/train.py
         - data/processed/train.pkl

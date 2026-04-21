@@ -48,10 +48,11 @@ def run_train(train_data, model_out, seed: int, model_type):
     )
 
 
-def run_evaluate(model_path, eval_data, metrics_out):
+def run_evaluate(model_type, model_path, eval_data, metrics_out):
     print("\n>>> Running evaluate()")
 
     return evaluation.evaluate(
+        model_type,
         model_path,
         eval_data,
         metrics_out
@@ -143,9 +144,11 @@ def run_all(args):
 
         # EVALUATION
         metrics = run_evaluate(
+            model_type=args.model_type,
             model_path=model_out,
             eval_data=test_pkl,
-            metrics_out=metrics_out
+            metrics_out=metrics_out,
+            
         )
 
         # LOG MODEL
@@ -153,7 +156,7 @@ def run_all(args):
             mlflow.sklearn.log_model(model, "model")
         else:
             mlflow.pytorch.log_model(model, "model")
-
+            
         mlflow.log_metrics(metrics)
         mlflow.log_artifact(metrics_out)
 

@@ -7,7 +7,10 @@ from models.bert_classifier import predict_bert
 from transformers import BertTokenizer, BertForSequenceClassification
 import pandas as pd
 import sys
+from pathlib import Path
 
+ROOT_DIR = Path(__file__).resolve().parents[1]
+MODEL_DIR = ROOT_DIR / "models"
 # LOAD
 
 def load_model(model_path):
@@ -52,11 +55,11 @@ def evaluate(model_type, model_path, test_data, metrics_out):
     if model_type == "bert":
 
         # load model
-        model = BertForSequenceClassification.from_pretrained(model_path)
-        tokenizer = BertTokenizer.from_pretrained(model_path)
+        model = BertForSequenceClassification.from_pretrained("models/")
+        tokenizer = BertTokenizer.from_pretrained("models/")
 
         # load CSV (NON pickle)
-        df = pd.read_csv(test_data)
+        df = pd.read_csv("data/interim/test.csv")
         texts = df["title"].fillna("").tolist()
         y_test = df["label"].values
 
