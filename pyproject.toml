@@ -42,3 +42,9 @@ extend-select = ["I"]  # Add import sorting rules (isort integration)
 [tool.ruff.lint.isort]
 known-first-party = ["src"]  # Treat "src" as first-party module (not external)
 force-sort-within-sections = true  # Enforce sorting inside import sections
+
+
+# Pytest
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = "tests"
