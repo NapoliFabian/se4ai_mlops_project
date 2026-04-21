@@ -1,15 +1,14 @@
 import argparse
-import mlflow
-import mlflow.sklearn
-import mlflow.pytorch
-import json
 
-import split_dataset
-import featurization
-import train
-import evaluation
 import dagshub
+import mlflow
+import mlflow.pytorch
+import mlflow.sklearn
 
+import evaluation
+import featurization
+import split_dataset
+import train
 
 # PIPELINE STEPS
 
@@ -185,7 +184,6 @@ def main():
     parser.add_argument("--test_size", type=float, default=0.3)
     parser.add_argument("--seed", type=int, default=1234)
 
-    # 🔥 NEW PARAM
     parser.add_argument(
         "--model_type",
         type=str,

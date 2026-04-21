@@ -1,14 +1,10 @@
 import os
-import torch
+
 import pandas as pd
-from tqdm import tqdm
+import torch
 from torch.utils.data import Dataset
-from transformers import (
-    BertTokenizer,
-    BertForSequenceClassification,
-    Trainer,
-    TrainingArguments
-)
+from tqdm import tqdm
+from transformers import BertForSequenceClassification, BertTokenizer, Trainer, TrainingArguments
 
 
 class TextDataset(Dataset):

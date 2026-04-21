@@ -1,14 +1,14 @@
-import pickle
 import os
+import pickle
 import sys
 
+from sklearn.linear_model import LogisticRegression
 import torch
 import torch.nn as nn
-from sklearn.linear_model import LogisticRegression
-from models.neural_network import DenseClassifier
 
 # BERT
 from models.bert_classifier import train_bert_classifier
+from models.neural_network import DenseClassifier
 
 
 def load_train_data(path):
