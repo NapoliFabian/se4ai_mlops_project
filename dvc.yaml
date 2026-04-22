@@ -30,7 +30,7 @@ stages:
         - models/model.pkl
 
   evaluate:
-      cmd: python src/evaluation.py models/model.pkl data/processed/test.pkl metrics/metrics.json
+      cmd: python src/evaluation.py nn models/model.pkl data/processed/test.pkl metrics/metrics.json
       deps:
         - src/evaluation.py
         - models/model.pkl

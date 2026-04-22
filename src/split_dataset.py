@@ -4,7 +4,7 @@ import sys
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+from preprocessing import preprocess_dataset
 
 # split function
 def split_dataframe(df, test_size, seed, target_column="label"):
@@ -39,8 +39,12 @@ def save_csv(df, output_path):
 
 def split_data(input_path, output_train, output_test, test_size, seed):
     # load
-    df = load_csv(input_path)
-
+    #df = load_csv(input_path)
+    
+    df = preprocess_dataset(
+        input_path= input_path,
+        output_path="data/processed/cleaned_dataset.csv"
+    )
     # split
     train_df, test_df = split_dataframe(df, test_size, seed)
     print(f"Split: {len(train_df)} train / {len(test_df)} test")
