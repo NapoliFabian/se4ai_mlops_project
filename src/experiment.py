@@ -105,63 +105,66 @@ def run_all(args):
             "n_test": len(test_df)
         })
 
-        mlflow.log_artifact("class_distribution.json")
+       
+        # FEATURIZATION
+        if args.model_type == "logreg":
+            run_featurize(
+                train_csv,
+                test_csv,
+                output_dir = "data/processed",
+                method="tfidf",
 
-    # FEATURIZATION
-    if args.model_type == "logreg":
-        run_featurize(
-            train_csv,
-            test_csv,
-            method="tfidf"
-        )
-        mlflow.log_param("embedding", "tfidf")
+            )
+            mlflow.log_param("embedding", "tfidf")
 
-    elif args.model_type == "nn":
-        run_featurize(
-            train_csv,
-            test_csv,
-            method="sbert"
-        )
-        mlflow.log_param("embedding", "sbert")
+        elif args.model_type == "nn":
+            run_featurize(
+                train_csv,
+                test_csv,
+                output_dir = "data/processed",
+                method="sbert",
+            )
+            mlflow.log_param("embedding", "sbert")
 
-    elif args.model_type == "bert":
-        X_train = train_df["text"].tolist()
-        y_train = train_df["label"].tolist()
-        X_test = test_df["text"].tolist()
-        y_test = test_df["label"].tolist()
-        mlflow.log_param("embedding", "raw")
-        
+        elif args.model_type == "bert":
+            X_train = train_df["text"].tolist()
+            y_train = train_df["label"].tolist()
+            X_test = test_df["text"].tolist()
+            y_test = test_df["label"].tolist()
+            mlflow.log_param("embedding", "raw")
+            
 
-        # TRAIN
-        
+            # TRAIN
+            
         model, loss_history = run_train(
-            train_data=train_pkl,
-            model_out=model_out,
-            seed=args.seed,
-            model_type=args.model_type
-        )
-
+                train_data=train_pkl,
+                model_out=model_out,
+                seed=args.seed,
+                model_type=args.model_type
+            )
+        
+        for epoch, loss in enumerate(loss_history):
+            mlflow.log_metric("train_loss", loss, step=epoch)
+            
         # EVALUATION
         metrics = run_evaluate(
-            model_type=args.model_type,
-            model_path=model_out,
-            eval_data=test_pkl,
-            metrics_out=metrics_out,
-            
-        )
+                model_type=args.model_type,
+                model_path=model_out,
+                eval_data=test_pkl,
+                metrics_out=metrics_out,
+                
+            )
 
-        # LOG MODEL
+            # LOG MODEL
         if args.model_type == "logreg":
-            mlflow.sklearn.log_model(model, "model")
+                mlflow.sklearn.log_model(model, "model")
         else:
-            mlflow.pytorch.log_model(model, "model")
-            
+                mlflow.pytorch.log_model(model, "model")
+                
         mlflow.log_metrics(metrics)
         mlflow.log_artifact(metrics_out)
 
-        # =========================
         # SUMMARY
-        # =========================
         print("\n" + "=" * 50)
         print("PIPELINE SUMMARY")
         print("=" * 50)
@@ -171,12 +174,10 @@ def run_all(args):
 
         print("=" * 50)
 
-        return {"metrics": metrics}
+    return {"metrics": metrics}
 
 
-# =========================
 # CLI
-# =========================
 
 def main():
     parser = argparse.ArgumentParser()
@@ -188,7 +189,7 @@ def main():
         "--model_type",
         type=str,
         choices=["logreg", "nn", "bert"],
-        default="bert",
+        default="nn",
         required=False
         
     )

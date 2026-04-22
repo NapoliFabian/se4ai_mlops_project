@@ -6,9 +6,7 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# =========================
 # LOAD
-# =========================
 
 def load_csv(path):
     if not os.path.exists(path):
@@ -16,9 +14,7 @@ def load_csv(path):
     return pd.read_csv(path)
 
 
-# =========================
 # TF-IDF
-# =========================
 
 def build_tfidf_features(train_texts, test_texts, max_features=5000):
     vectorizer = TfidfVectorizer(
@@ -32,9 +28,7 @@ def build_tfidf_features(train_texts, test_texts, max_features=5000):
     return X_train, X_test, vectorizer
 
 
-# =========================
 # SENTENCE BERT
-# =========================
 
 def build_sbert_features(train_texts, test_texts, model_name="all-MiniLM-L6-v2"):
     """
@@ -48,17 +42,9 @@ def build_sbert_features(train_texts, test_texts, model_name="all-MiniLM-L6-v2")
     return np.array(X_train), np.array(X_test), model
 
 
-# =========================
-# TARGETS
-# =========================
 
 def extract_targets(df):
     return df["label"].values
-
-
-# =========================
-# SAVE
-# =========================
 
 def save_pickle(obj, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -66,9 +52,7 @@ def save_pickle(obj, path):
         pickle.dump(obj, f)
 
 
-# =========================
 # PIPELINE
-# =========================
 
 def featurize(
     train_path,
@@ -77,19 +61,17 @@ def featurize(
     vectorizer_path,
     method="tfidf" #choise
 ):
-    # load
+    # LOAD
     train_df = load_csv(train_path)
     test_df = load_csv(test_path)
 
-    train_texts = train_df["title"].fillna("")
-    test_texts = test_df["title"].fillna("")
+    train_texts = train_df["text"].fillna("")
+    test_texts = test_df["text"].fillna("")
 
     y_train = extract_targets(train_df)
     y_test = extract_targets(test_df)
 
-    # =========================
-    # FEATURE SELECTION
-    # =========================
+    # METHOD
     if method.lower() == "tfidf":
         print(">>> Using TF-IDF")
         X_train, X_test, encoder = build_tfidf_features(train_texts, test_texts)
@@ -101,9 +83,7 @@ def featurize(
     else:
         raise ValueError(f"Unknown method: {method}")
 
-    # =========================
     # SAVE
-    # =========================
     os.makedirs(output_dir, exist_ok=True)
 
     save_pickle(encoder, vectorizer_path)

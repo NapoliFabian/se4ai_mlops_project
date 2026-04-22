@@ -89,7 +89,7 @@ def train_model(train_input, model_out, seed, model_type="logreg"):
         save_model(model, model_out)
 
         print(f"[LOGREG] saved in {model_out}")
-        return model
+        return model, []
 
 
     # NEURAL NETWORK (SBERT)
