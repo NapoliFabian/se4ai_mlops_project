@@ -40,16 +40,10 @@ def drop_empty_text(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def clean_text(text: str) -> str:
-    """
-    Rimuove caratteri speciali, mantiene solo contenuto testuale
-    """
     text = text.lower()
-
-    # rimuove caratteri non alfanumerici
-    text = re.sub(r"[^a-zA-Z0-9\s]", " ", text)
-
-    # rimuove spazi multipli
-    text = re.sub(r"\s+", " ", text).strip()
+    
+    text = re.sub(r"[^a-zA-Z0-9\s]", " ", text) # no special chars
+    text = re.sub(r"\s+", " ", text).strip() # multiple space
 
     return text
 
@@ -92,9 +86,7 @@ def preprocess_dataset(input_path: str, output_path: str) -> pd.DataFrame:
     return df
 
 
-# ---------------------------
-# CLI ENTRY
-# ---------------------------
+
 if __name__ == "__main__":
     preprocess_dataset(
         input_path="data/raw/dataset.csv",
